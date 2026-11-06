@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Dernière Lanterne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c1214; --bg2: #141d20; --panel: #1a2528; --line: #31433f; --ink: #e9e2cf; --dim: #a39f8e;
+  --amber: #f0b04a; --amber2: #b9772a; --blood: #d9534a; --teal: #5fb3a8; --violet: #a884c9;
+  --serif: 'Spectral', Georgia, serif; --title: 'IM Fell English SC', 'Spectral', Georgia, serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: radial-gradient(1100px 620px at 50% -10%, #24362f 0%, var(--bg) 62%) fixed, var(--bg);
+  color: var(--ink); font: 16px/1.45 var(--serif);
+}
+h1, h2, h3 { font-family: var(--title); font-weight: 400; margin: 0; letter-spacing: .02em; }
+button {
+  font: inherit; color: var(--ink); background: #26363a; border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 14px; cursor: pointer; transition: background .12s, border-color .12s, transform .12s;
+}
+button:hover:not(:disabled) { background: #32474a; border-color: var(--amber2); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--amber); color: #2a1a05; border-color: var(--amber); font-weight: 600; }
+button.primary:hover:not(:disabled) { background: #ffc566; }
+button.voted { border-color: var(--teal); box-shadow: inset 0 0 0 1px var(--teal); }
+input {
+  font: inherit; color: var(--ink); background: #0f1719; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%;
+}
+.dim { color: var(--dim); } .small { font-size: 14px; }
+
+/* accueil */
+.home { max-width: 760px; margin: 0 auto; padding: 48px 16px; text-align: center; }
+.home h1 { font-size: clamp(40px, 8vw, 66px); color: var(--amber); line-height: 1.05; }
+.home .lead { font-size: 19px; margin: 12px auto 30px; max-width: 560px; color: var(--dim); }
+.home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; text-align: left; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.box h3 { font-size: 21px; margin-bottom: 8px; color: var(--amber); }
+.box button { width: 100%; margin-top: 10px; }
+.rules { text-align: left; margin-top: 18px; }
+.rules summary { cursor: pointer; font-family: var(--title); font-size: 20px; color: var(--amber); }
+.rules li { margin: 6px 0; }
+.err { color: var(--blood); margin-top: 12px; min-height: 22px; }
+
+/* table de jeu */
+.game { display: grid; grid-template-columns: 250px minmax(0, 1fr) 280px; gap: 12px; padding: 12px; min-height: 100vh; max-width: 1500px; margin: 0 auto; }
+.topbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; padding: 8px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.topbar .brand { font-family: var(--title); font-size: 21px; color: var(--amber); }
+.res { display: inline-flex; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; }
+.res svg { width: 19px; height: 19px; }
+.res.warn { color: var(--blood); font-weight: 600; }
+.spacer { flex: 1; }
+.code { font-family: ui-monospace, Consolas, monospace; letter-spacing: .12em; color: var(--amber); }
+.heroes { display: flex; flex-direction: column; gap: 12px; }
+.hero { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.hero.me { border-color: var(--amber2); }
+.hero.down { opacity: .6; }
+.hero-head { display: flex; gap: 10px; align-items: center; }
+.hero-head svg { width: 46px; height: 46px; flex: none; color: var(--amber); }
+.hero-name { font-family: var(--title); font-size: 19px; line-height: 1.1; overflow-wrap: anywhere; }
+.bar { height: 10px; background: #0d1416; border-radius: 5px; overflow: hidden; margin: 8px 0 3px; }
+.bar i { display: block; height: 100%; background: var(--blood); transition: width .3s; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.tag { font-size: 13px; padding: 2px 7px; border-radius: 5px; background: #24332f; border: 1px solid var(--line); }
+button.tag { padding: 2px 7px; }
+.stage { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.stage h2 { font-size: 30px; color: var(--amber); }
+.side { display: flex; flex-direction: column; gap: 12px; min-height: 0; max-height: calc(100vh - 86px); position: sticky; top: 12px; }
+.feed { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow-y: auto; font-size: 14.5px; min-height: 0; }
+#log { flex: 2; } #chatwrap { flex: 1; display: flex; flex-direction: column; min-height: 170px; }
+#chat { flex: 1; overflow-y: auto; font-size: 14.5px; margin-bottom: 8px; }
+.feed p { margin: 0 0 5px; }
+.feed h3 { font-size: 16px; color: var(--dim); margin-bottom: 6px; }
+
+/* carte de l'étage */
+.map { display: flex; flex-direction: column-reverse; gap: 10px; margin-top: 16px; max-width: 520px; margin-inline: auto; }
+.map-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.node {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 14px; min-height: 76px; justify-content: center;
+}
+.node svg { width: 30px; height: 30px; }
+.node.reach { border-color: var(--amber); color: var(--amber); }
+.node.here { background: #3b3220; border-color: var(--amber); opacity: 1; }
+.node.past { opacity: .35; }
+.node .who { font-size: 12px; color: var(--teal); min-height: 16px; }
+.node.boss { grid-column: 1 / -1; color: var(--blood); }
+.vote-note { text-align: center; margin-top: 12px; color: var(--teal); min-height: 24px; }
+
+/* combat */
+.enemy { display: flex; gap: 16px; align-items: center; background: #101a1c; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.enemy > svg { width: 92px; height: 92px; flex: none; color: var(--blood); }
+.enemy .bar i { background: var(--violet); }
+.enemy.hit { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.intent { margin-top: 6px; font-weight: 600; color: var(--amber); }
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.slot { border: 1px dashed var(--line); border-radius: 8px; padding: 8px; min-height: 104px; }
+.slot h3 { font-size: 16px; } .slot .sum { color: var(--amber); float: right; }
+.dice { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; min-height: 46px; }
+.die {
+  width: 46px; height: 46px; padding: 0; font: 600 22px var(--serif); background: var(--ink); color: #1b1a14; border-color: var(--ink);
+}
+.die:hover:not(:disabled) { background: #fff; }
+.die.sel { box-shadow: 0 0 0 3px var(--amber); }
+.die.gift { background: var(--teal); border-color: var(--teal); }
+.die.roll { animation: roll .35s; }
+@keyframes roll { from { transform: rotate(-200deg) scale(.6); opacity: .3; } }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+.ally { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mini { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; background: #2c3b3d; border-radius: 5px; margin-right: 4px; font-weight: 600; }
+.mini.atk { background: #6e2f2b; } .mini.grd { background: #2e5a5a; } .mini.skl { background: #6d5322; }
+.lastround { margin-top: 12px; font-size: 14.5px; color: var(--dim); }
+
+/* choix */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.card.pick { border-color: var(--amber); }
+.card h3 { font-size: 19px; }
+.card svg { width: 52px; height: 52px; color: var(--amber); }
+.card .grow { flex: 1; }
+.options { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; max-width: 480px; }
+.options button { text-align: left; }
+.banner { text-align: center; padding: 36px 8px; }
+.banner h2 { font-size: 44px; }
+.seat-switch { display: flex; gap: 6px; }
+
+@media (max-width: 1050px) {
+  .game { grid-template-columns: minmax(0, 1fr); }
+  .heroes { flex-direction: row; flex-wrap: wrap; order: 3; } .hero { flex: 1 1 220px; }
+  .side { order: 4; position: static; max-height: none; } #log { max-height: 220px; }
+}
+@media (max-width: 520px) {
+  .slots { grid-template-columns: 1fr; } .enemy > svg { width: 64px; height: 64px; }
+}
+@media (prefers-reduced-motion: reduce) { .die.roll, .enemy.hit { animation: none; } }
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* La Dernière Lanterne — moteur de jeu (pur, déterministe, sans DOM).
+   L'hôte applique les actions ; l'état complet est ensuite diffusé. */
+(function (root) {
+  'use strict';
+
+  const CLASSES = {
+    sentinelle: { name: 'Sentinelle', hp: 28, min: 3, skill: 'Rempart', glyph: 'shield',
+      desc: 'Tenace et lente. Protège le binôme.',
+      skillDesc: 'Les deux Veilleurs gagnent une Garde égale au dé.' },
+    lame: { name: 'Lame-de-Cendre', hp: 22, min: 4, skill: 'Entaille', glyph: 'blade',
+      desc: 'Fragile, mais frappe très fort.',
+      skillDesc: "Inflige le double du dé, en ignorant l'Armure." },
+    cantrice: { name: 'Cantrice', hp: 22, min: 3, skill: 'Hymne', glyph: 'voice',
+      desc: 'Soigne au cœur du combat.',
+      skillDesc: 'Soigne le Veilleur le plus blessé de la valeur du dé.' },
+    fouilleur: { name: 'Fouilleur', hp: 24, min: 2, skill: 'Larcin', glyph: 'hook',
+      desc: "Polyvalent. Remplit la bourse commune.",
+      skillDesc: "Inflige le dé +4 et rapporte 1 Éclat (2 sur un 5 ou 6)." },
+  };
+
+  const DEPTHS = [
+    { name: 'Le Cloître inondé', tint: '#2f6f73' },
+    { name: 'Les Cryptes de sel', tint: '#8a8f7a' },
+    { name: "L'Ossuaire des cloches", tint: '#9a6a3c' },
+    { name: 'Le Chœur noir', tint: '#6d3a6e' },
+  ];
+
+  /* p = cycle d'intentions. a: attaque, x: attaque de zone, s: bouclier,
+     d: vol d'huile, h: soin, c: malédiction (un dé de moins au prochain tour) */
+  const a = (v) => ({ t: 'a', v }), x = (v) => ({ t: 'x', v }), sh = (v) => ({ t: 's', v }),
+        dr = (v) => ({ t: 'd', v }), he = (v) => ({ t: 'h', v }), cu = () => ({ t: 'c', v: 1 });
+
+  const ENEMIES = {
+    1: { normal: [
+        { name: 'Anguille de bénitier', hp: 15, armor: 0, xp: 3, glyph: 'eel', p: [a(5), a(6), x(3)] },
+        { name: 'Moine vaseux', hp: 19, armor: 0, xp: 3, glyph: 'wraith', p: [a(4), sh(5), a(7)] },
+        { name: 'Crabe des fonts', hp: 13, armor: 2, xp: 3, glyph: 'crab', p: [sh(3), a(6), a(6)] }],
+      elite: { name: 'Gargouille noyée', hp: 30, armor: 1, xp: 6, glyph: 'statue', p: [a(7), x(4), sh(6), a(9)] },
+      boss: { name: 'Le Sonneur englouti', hp: 46, armor: 1, xp: 9, glyph: 'bell', p: [x(5), a(9), dr(2), sh(8), x(6)] } },
+    2: { normal: [
+        { name: 'Rat de saumure', hp: 22, armor: 0, xp: 4, glyph: 'rat', p: [a(7), dr(1), a(8)] },
+        { name: 'Gisant fendu', hp: 24, armor: 2, xp: 4, glyph: 'statue', p: [sh(5), a(9), x(4)] },
+        { name: 'Pleureuse cristalline', hp: 21, armor: 1, xp: 4, glyph: 'wraith', p: [cu(), a(8), x(5)] }],
+      elite: { name: 'Le Gardien des urnes', hp: 42, armor: 2, xp: 8, glyph: 'crab', p: [x(5), a(10), he(6), a(11)] },
+      boss: { name: 'La Mère-Sel', hp: 64, armor: 2, xp: 12, glyph: 'worm', p: [x(6), cu(), a(12), he(8), x(7)] } },
+    3: { normal: [
+        { name: 'Sacristain sans tête', hp: 30, armor: 1, xp: 5, glyph: 'wraith', p: [a(10), x(5), a(10)] },
+        { name: 'Essaim de phalanges', hp: 26, armor: 0, xp: 5, glyph: 'skull', p: [x(6), x(6), dr(1)] },
+        { name: 'Battant fou', hp: 33, armor: 3, xp: 5, glyph: 'bell', p: [sh(6), a(12), cu()] }],
+      elite: { name: 'Le Fossoyeur', hp: 54, armor: 2, xp: 10, glyph: 'skull', p: [a(12), cu(), x(7), he(8), a(14)] },
+      boss: { name: "Le Chapitre d'os", hp: 82, armor: 3, xp: 15, glyph: 'skull', p: [x(7), a(14), sh(10), x(8), cu(), a(15)] } },
+    4: { normal: [
+        { name: 'Choriste aveugle', hp: 36, armor: 2, xp: 6, glyph: 'eye', p: [x(7), cu(), a(13)] },
+        { name: 'Ombre de cierge', hp: 32, armor: 1, xp: 6, glyph: 'wraith', p: [dr(2), a(13), x(7)] },
+        { name: 'Prieur de poix', hp: 42, armor: 3, xp: 6, glyph: 'worm', p: [sh(7), a(14), he(6)] }],
+      elite: { name: "L'Archidiacre creux", hp: 64, armor: 3, xp: 12, glyph: 'eye', p: [x(8), a(15), cu(), sh(10), a(16)] },
+      boss: { name: "L'Abbesse sans lumière", hp: 105, armor: 3, xp: 0, glyph: 'abbess', p: [x(8), a(16), dr(3), cu(), x(9), sh(12), a(18)] } },
+  };
+
+  const POTIONS = {
+    soin: { name: 'Baume de cire', desc: 'Rend 9 Vigueur à un Veilleur.', any: true },
+    force: { name: 'Vin de messe', desc: '+5 dégâts ce tour.' },
+    egide: { name: 'Eau bénite', desc: '+7 Garde ce tour.' },
+    braise: { name: 'Braise vive', desc: "Inflige 7 dégâts sur-le-champ, sans tenir compte de l'Armure." },
+    relance: { name: 'Encens', desc: 'Relance tous tes dés non placés, gratuitement.' },
+  };
+
+  const RELICS = {
+    pierre: { name: 'Pierre à aiguiser', desc: '+2 dégâts si au moins un dé est en Attaque.' },
+    ardoise: { name: "Bouclier d'ardoise", desc: '+2 Garde si au moins un dé est en Garde.' },
+    chapelet: { name: 'Chapelet usé', desc: '+1 relance par tour.' },
+    coeur: { name: 'Cœur de sel', desc: '+7 Vigueur maximale.' },
+    meche: { name: 'Mèche tressée', desc: '+1 Huile après chaque combat.' },
+    bourse: { name: 'Bourse du quêteur', desc: '+2 Éclats après chaque combat.' },
+    epines: { name: 'Cilice', desc: "Renvoie 3 dégâts à chaque coup reçu." },
+    saint: { name: 'Dé du saint', desc: 'Tes 6 valent 8.' },
+    lien: { name: 'Cordon des Veilleurs', desc: 'Tu peux passer 2 dés par tour à ton allié.' },
+    calice: { name: 'Calice fêlé', desc: 'Rend 3 Vigueur après chaque combat.' },
+    psautier: { name: 'Psautier annoté', desc: 'Ta compétence demande 1 de moins au dé.' },
+  };
+
+  /* Effets : hp, oil, shards, xp, maxhp, potion, relic, fight. chance = { p, win, lose } */
+  const EVENTS = [
+    { id: 'tronc', title: 'Le tronc des pauvres', text: "Une boîte de fer scellée dans le mur. Quelque chose y cliquette, et quelque chose y respire.",
+      options: [
+        { label: 'Forcer le tronc', chance: { p: 0.6, win: { shards: 8, say: 'Le tronc cède : 8 Éclats !' }, lose: { hp: -5, say: 'Une main de vase vous griffe (−5 Vigueur).' } } },
+        { label: 'Y déposer 3 Éclats', need: { shards: 3 }, fx: { shards: -3, relic: 1, say: "Un déclic. Une relique glisse hors du mur." } },
+        { label: 'Passer son chemin', fx: { say: 'Vous laissez le tronc à sa respiration.' } }] },
+    { id: 'cierge', title: 'Le cierge qui ne fond pas', text: 'Sa flamme est bleue et ne chauffe rien. On pourrait en recueillir la cire, ou la faire boire à la lanterne.',
+      options: [
+        { label: 'Nourrir la lanterne (+4 Huile)', fx: { oil: 4, hp: -2, say: 'La lanterne boit. Le froid vous mord (−2 Vigueur).' } },
+        { label: 'Recueillir la cire', fx: { potion: 1, say: 'Vous repartez avec un remède.' } }] },
+    { id: 'confession', title: 'Le confessionnal', text: 'Une voix douce derrière la grille propose de vous apprendre ce que savaient les morts, en échange de vos forces.',
+      options: [
+        { label: 'Écouter (−4 Vigueur, +5 Savoir)', fx: { hp: -4, xp: 5, say: 'Vous en sortez plus sages et plus pâles.' } },
+        { label: 'Fermer le volet', fx: { say: 'La voix soupire et se tait.' } }] },
+    { id: 'pont', title: 'La nef effondrée', text: "Une poutre enjambe l'eau noire. Le détour vous coûterait de l'huile.",
+      options: [
+        { label: 'Traverser sur la poutre', chance: { p: 0.65, win: { xp: 2, say: 'Traversée sans encombre (+2 Savoir).' }, lose: { hp: -6, say: 'Chute dans l\'eau glacée (−6 Vigueur).' } } },
+        { label: 'Faire le détour (−2 Huile)', fx: { oil: -2, say: 'Le chemin est long, mais sûr.' } }] },
+    { id: 'pelerin', title: 'Le pèlerin perdu', text: 'Il tient une lanterne éteinte et demande un peu d\'huile. Ses yeux sont très, très grands.',
+      options: [
+        { label: 'Lui donner 2 Huile', need: { oil: 2 }, fx: { oil: -2, shards: 6, xp: 2, say: 'Il vous remercie en Éclats, puis s\'efface.' } },
+        { label: 'Refuser', chance: { p: 0.5, win: { say: 'Il baisse la tête et s\'éloigne.' }, lose: { fight: true, say: 'Son visage se déplie…' } } }] },
+    { id: 'reliquaire', title: 'Le reliquaire entrouvert', text: 'Un os de saint repose sur un coussin pourri. Le toucher ne serait pas sans conséquence.',
+      options: [
+        { label: "Prendre l'os", fx: { relic: 1, fight: true, say: 'Quelque chose vient réclamer son bien !' } },
+        { label: 'Prier (+5 Vigueur)', fx: { hp: 5, say: 'Une chaleur ancienne vous parcourt.' } }] },
+    { id: 'puits', title: 'Le puits aux vœux', text: "Tout au fond brille un tapis d'Éclats. L'eau semble guérir, mais elle réclame un paiement.",
+      options: [
+        { label: 'Payer 4 Éclats (+10 Vigueur)', need: { shards: 4 }, fx: { shards: -4, hp: 10, say: "L'eau referme vos plaies." } },
+        { label: 'Descendre un seau', chance: { p: 0.5, win: { shards: 7, say: 'Le seau remonte plein : 7 Éclats.' }, lose: { oil: -2, say: "Le seau remonte vide, et l'humidité gâte l'huile (−2)." } } }] },
+    { id: 'orgue', title: "L'orgue noyé", text: 'Quelques tuyaux tiennent encore. Une seule note pourrait réveiller tout l\'étage, ou l\'apaiser.',
+      options: [
+        { label: 'Jouer la note', chance: { p: 0.5, win: { xp: 4, oil: 1, say: "L'étage s'apaise (+4 Savoir, +1 Huile)." }, lose: { fight: true, say: 'Quelque chose répond à la note.' } } },
+        { label: 'Démonter un tuyau', fx: { shards: 4, say: 'Le métal vaut 4 Éclats.' } }] },
+  ];
+
+  const TUNE = { hp: 2.4, atk: 2.2 };
+  const XP_LEVELS = [0, 8, 20, 36, 56];
+  const diceForLevel = (l) => (l >= 5 ? 5 : l >= 3 ? 4 : 3);
+
+  /* ---------- hasard sérialisable ---------- */
+  function rnd(s) {
+    s.seed = (s.seed + 0x6D2B79F5) | 0;
+    let t = s.seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const ri = (s, n) => Math.floor(rnd(s) * n);
+  const pick = (s, arr) => arr[ri(s, arr.length)];
+  const hasR = (p, id) => p.relics.includes(id);
+  const log = (s, m) => { s.log.push(m); if (s.log.length > 60) s.log.shift(); };
+  const alive = (s) => s.players.filter((p) => p.hp > 0);
+
+  /* ---------- création ---------- */
+  function newGame(seed, solo) {
+    return {
+      v: 1, seed: seed | 0, solo: !!solo, phase: 'lobby', depth: 1, oil: 10, shards: 4, xp: 0, level: 1,
+      players: [mkSeat('Veilleur 1'), mkSeat('Veilleur 2')],
+      map: null, pos: null, votes: [null, null], combat: null, event: null, shop: null, rest: null,
+      reward: null, relicPool: Object.keys(RELICS), seenEvents: [], log: [], chat: [], moves: 0, stats: { kills: 0 },
+    };
+  }
+  function mkSeat(name) {
+    return { name, cls: null, connected: false, hp: 0, maxHp: 0, relics: [], potions: [], dice: [], cursed: 0 };
+  }
+
+  function genMap(s) {
+    const rows = [];
+    for (let r = 0; r < 4; r++) {
+      const row = [];
+      for (let c = 0; c < 3; c++) {
+        let type;
+        if (r === 0) type = 'combat';
+        else {
+          const w = rnd(s);
+          type = w < 0.36 ? 'combat' : w < 0.54 ? 'event' : w < 0.68 ? 'treasure' : w < 0.84 ? 'mystery' : 'elite';
+          if (r === 1 && type === 'elite') type = 'combat';
+        }
+        row.push({ row: r, col: c, type, done: false });
+      }
+      rows.push(row);
+    }
+    rows[2][ri(s, 3)].type = 'shop';
+    rows[3][ri(s, 3)].type = 'rest';
+    rows[1][ri(s, 3)].type = 'rest';
+    return rows;
+  }
+
+  function startRun(s) {
+    s.players.forEach((p) => {
+      const c = CLASSES[p.cls];
+      p.maxHp = c.hp; p.hp = c.hp; p.relics = []; p.potions = ['soin']; p.dice = []; p.cursed = 0;
+    });
+    s.depth = 1; s.oil = 10; s.shards = 4; s.xp = 0; s.level = 1; s.moves = 0;
+    s.relicPool = Object.keys(RELICS); s.seenEvents = []; s.stats = { kills: 0 };
+    s.log = [];
+    log(s, 'Les Veilleurs allument la lanterne et descendent dans l\'abbaye.');
+    enterDepth(s);
+  }
+
+  function enterDepth(s) {
+    s.map = genMap(s); s.pos = null; s.phase = 'map'; clearVotes(s);
+    log(s, `Profondeur ${s.depth} : ${DEPTHS[s.depth - 1].name}.`);
+  }
+  const clearVotes = (s) => { s.votes = [null, null]; };
+
+  function canReach(s, row, col) {
+    if (row === 4) return s.pos && s.pos.row === 3;
+    if (!s.pos) return row === 0;
+    return row === s.pos.row + 1 && Math.abs(col - s.pos.col) <= 1;
+  }
+
+  /* ---------- gains & pertes ---------- */
+  function gainXp(s, n) {
+    s.xp += n;
+    while (s.level < 5 && s.xp >= XP_LEVELS[s.level]) {
+      s.level++;
+      s.players.forEach((p) => { p.maxHp += 3; if (p.hp > 0) p.hp += 3; });
+      log(s, `Niveau ${s.level} ! +3 Vigueur maximale` + (diceForLevel(s.level) > diceForLevel(s.level - 1) ? ' et un dé de plus.' : '.'));
+    }
+  }
+  function heal(p, n) { if (p.hp > 0) p.hp = Math.min(p.maxHp, p.hp + n); }
+  function hurtAll(s, n) { alive(s).forEach((p) => { p.hp = Math.max(1, p.hp - n); }); }
+
+  function giveRelic(s, p, id) {
+    p.relics.push(id);
+    s.relicPool = s.relicPool.filter((r) => r !== id);
+    if (id === 'coeur') { p.maxHp += 7; p.hp += 7; }
+    log(s, `${p.name} obtient : ${RELICS[id].name}.`);
+  }
+  function drawRelics(s, n) {
+    const pool = s.relicPool.slice(), out = [];
+    while (out.length < n && pool.length) out.push(pool.splice(ri(s, pool.length), 1)[0]);
+    return out;
+  }
+  function givePotion(s, id) {
+    const c = alive(s).sort((p, q) => p.potions.length - q.potions.length)[0];
+    if (!c) return;
+    const k = id || pick(s, Object.keys(POTIONS));
+    if (c.potions.length >= 3) { log(s, 'Vos sacs sont pleins.'); return; }
+    c.potions.push(k);
+    log(s, `${c.name} trouve : ${POTIONS[k].name}.`);
+  }
+
+  function applyFx(s, fx) {
+    if (fx.say) log(s, fx.say);
+    if (fx.oil) s.oil = Math.max(0, s.oil + fx.oil);
+    if (fx.shards) s.shards = Math.max(0, s.shards + fx.shards);
+    if (fx.hp > 0) alive(s).forEach((p) => heal(p, fx.hp));
+    if (fx.hp < 0) hurtAll(s, -fx.hp);
+    if (fx.xp) gainXp(s, fx.xp);
+    if (fx.potion) givePotion(s);
+    let pending = false;
+    if (fx.relic) {
+      const items = drawRelics(s, 2);
+      if (items.length) { s.reward = { items, taken: [false, false], then: fx.fight ? 'fight' : 'map' }; s.phase = 'reward'; pending = true; }
+    }
+    if (fx.fight && !pending) { startCombat(s, 'normal'); pending = true; }
+    return pending;
+  }
+
+  /* ---------- salles ---------- */
+  function enterRoom(s, row, col) {
+    if (s.oil > 0) s.oil--;
+    else { hurtAll(s, 3); log(s, "Plus d'huile : l'obscurité vous ronge (−3 Vigueur)."); }
+    s.moves++;
+    clearVotes(s);
+    if (row === 4) { startCombat(s, 'boss'); return; }
+    s.pos = { row, col };
+    const n = s.map[row][col];
+    n.done = true;
+    let type = n.type;
+    if (type === 'mystery') type = pick(s, ['event', 'treasure', 'combat', 'event']);
+    if (type === 'combat') startCombat(s, 'normal');
+    else if (type === 'elite') startCombat(s, 'elite');
+    else if (type === 'event') startEvent(s);
+    else if (type === 'treasure') {
+      const g = 4 + s.depth * 2 + ri(s, 4);
+      s.shards += g; log(s, `Un coffre oublié : +${g} Éclats.`);
+      if (rnd(s) < 0.5) givePotion(s);
+      s.phase = 'map';
+    } else if (type === 'shop') startShop(s);
+    else if (type === 'rest') { s.rest = { done: [false, false] }; s.phase = 'rest'; log(s, 'Une chapelle sèche : un moment de répit.'); autoRest(s); }
+  }
+
+  function startEvent(s) {
+    let pool = EVENTS.filter((e) => !s.seenEvents.includes(e.id));
+    if (!pool.length) { s.seenEvents = []; pool = EVENTS; }
+    const e = pick(s, pool);
+    s.seenEvents.push(e.id);
+    s.event = { id: e.id };
+    s.phase = 'event';
+  }
+  function startShop(s) {
+    const items = [
+      { kind: 'oil', label: '3 fioles d\'huile', desc: '+3 Huile', price: 5 },
+      { kind: 'heal', label: 'Soins du frère herboriste', desc: '+8 Vigueur aux deux Veilleurs', price: 6 },
+    ];
+    const pk = Object.keys(POTIONS);
+    for (let i = 0; i < 2; i++) { const k = pick(s, pk); items.push({ kind: 'potion', id: k, label: POTIONS[k].name, desc: POTIONS[k].desc, price: 4 }); }
+    drawRelics(s, 2).forEach((id) => items.push({ kind: 'relic', id, label: RELICS[id].name, desc: RELICS[id].desc, price: 9 + s.depth * 2 }));
+    s.shop = { items }; s.phase = 'shop';
+    log(s, 'Un frère convers tient boutique sur un autel renversé.');
+  }
+  function autoRest(s) {
+    s.players.forEach((p, i) => { if (p.hp <= 0) s.rest.done[i] = true; });
+  }
+
+  /* ---------- combat ---------- */
+  function startCombat(s, kind) {
+    const pool = ENEMIES[s.depth];
+    const def = kind === 'boss' ? pool.boss : kind === 'elite' ? pool.elite : pick(s, pool.normal);
+    const hp = Math.round(def.hp * TUNE.hp);
+    const pattern = def.p.map((i) => (i.t === 'a' || i.t === 'x' || i.t === 's' || i.t === 'h'
+      ? { t: i.t, v: Math.round(i.v * (i.t === 'a' || i.t === 'x' ? TUNE.atk : TUNE.hp * 0.6)) } : i));
+    s.combat = {
+      kind, name: def.name, glyph: def.glyph, hp, maxHp: hp, armor: def.armor, xp: def.xp,
+      pattern, step: ri(s, kind === 'boss' ? 1 : def.p.length), intent: null, target: 0, round: 0, shield: 0,
+      ready: [false, false], last: [],
+    };
+    s.phase = 'combat';
+    log(s, `${def.name} surgit !`);
+    nextRound(s);
+  }
+
+  function nextRound(s) {
+    const c = s.combat;
+    c.round++;
+    c.intent = c.pattern[c.step % c.pattern.length];
+    c.step++;
+    const al = s.players.map((p, i) => (p.hp > 0 ? i : -1)).filter((i) => i >= 0);
+    c.target = pick(s, al);
+    c.shield = 0;
+    c.ready = [false, false];
+    s.players.forEach((p, i) => {
+      p.dice = []; p.gives = 0; p.bonusAtk = 0; p.bonusGrd = 0;
+      p.rerolls = 1 + (hasR(p, 'chapelet') ? 1 : 0);
+      if (p.hp <= 0) { c.ready[i] = true; return; }
+      const n = Math.max(1, diceForLevel(s.level) - (p.cursed || 0));
+      p.cursed = 0;
+      for (let k = 0; k < n; k++) p.dice.push({ id: `${c.round}-${i}-${k}`, v: 1 + ri(s, 6), slot: null, gift: false });
+    });
+  }
+
+  const pipValue = (p, d) => (d.v === 6 && hasR(p, 'saint') ? 8 : d.v);
+  const skillMin = (p) => CLASSES[p.cls].min - (hasR(p, 'psautier') ? 1 : 0);
+
+  function resolveRound(s) {
+    const c = s.combat, ev = [];
+    if (c.intent.t === 's') { c.shield = c.intent.v; ev.push(`${c.name} se protège (${c.shield}).`); }
+    const guard = [0, 0];
+    let pierce = 0, total = 0;
+
+    s.players.forEach((p, i) => {
+      if (p.hp <= 0) return;
+      const atk = p.dice.filter((d) => d.slot === 'atk'), grd = p.dice.filter((d) => d.slot === 'grd');
+      const skl = p.dice.find((d) => d.slot === 'skl');
+      let dmg = atk.reduce((n, d) => n + pipValue(p, d), 0) + (p.bonusAtk || 0);
+      if (atk.length && hasR(p, 'pierre')) dmg += 2;
+      if (dmg > 0) dmg = Math.max(0, dmg - c.armor);
+      total += dmg;
+      guard[i] += grd.reduce((n, d) => n + pipValue(p, d), 0) + (p.bonusGrd || 0);
+      if (grd.length && hasR(p, 'ardoise')) guard[i] += 2;
+      if (skl) {
+        const v = pipValue(p, skl);
+        if (p.cls === 'sentinelle') { guard[0] += v; guard[1] += v; ev.push(`${p.name} dresse un Rempart (+${v} Garde pour tous).`); }
+        if (p.cls === 'lame') { pierce += v * 2; ev.push(`${p.name} entaille pour ${v * 2}.`); }
+        if (p.cls === 'cantrice') {
+          const t = alive(s).sort((m, n) => (m.hp / m.maxHp) - (n.hp / n.maxHp))[0];
+          heal(t, v + 2); ev.push(`${p.name} chante : ${t.name} récupère ${v + 2} Vigueur.`);
+        }
+        if (p.cls === 'fouilleur') { total += v; const g = v >= 5 ? 2 : 1; s.shards += g; ev.push(`${p.name} frappe pour ${v} et chipe ${g} Éclat${g > 1 ? 's' : ''}.`); }
+      }
+    });
+
+    const absorbed = Math.min(c.shield, total);
+    c.shield -= absorbed;
+    const dealt = total - absorbed + pierce;
+    c.hp = Math.max(0, c.hp - dealt);
+    ev.push(`Les Veilleurs infligent ${dealt} dégâts.`);
+
+    if (c.hp > 0) {
+      const it = c.intent;
+      const hit = (i, v) => {
+        const p = s.players[i];
+        if (p.hp <= 0) return;
+        const taken = Math.max(0, v - guard[i]);
+        guard[i] = Math.max(0, guard[i] - v);
+        p.hp = Math.max(0, p.hp - taken);
+        ev.push(`${c.name} frappe ${p.name} : ${taken} dégâts${taken < v ? ` (${v - taken} parés)` : ''}.`);
+        if (hasR(p, 'epines')) c.hp = Math.max(0, c.hp - 3);
+        if (p.hp <= 0) ev.push(`${p.name} s'effondre !`);
+      };
+      if (it.t === 'a') hit(c.target, it.v);
+      if (it.t === 'x') { hit(0, it.v); hit(1, it.v); }
+      if (it.t === 'd') { s.oil = Math.max(0, s.oil - it.v); ev.push(`${c.name} souffle sur la lanterne (−${it.v} Huile).`); }
+      if (it.t === 'h') { c.hp = Math.min(c.maxHp, c.hp + it.v); ev.push(`${c.name} se régénère (+${it.v}).`); }
+      if (it.t === 'c') { s.players[c.target].cursed = 1; ev.push(`${s.players[c.target].name} est maudit : un dé de moins au prochain tour.`); }
+    }
+    c.last = ev;
+    ev.forEach((m) => log(s, m));
+
+    if (c.hp <= 0) return winCombat(s);
+    if (!alive(s).length) { s.phase = 'defeat'; log(s, 'La lanterne roule sur les dalles et s\'éteint.'); return; }
+    nextRound(s);
+  }
+
+  function winCombat(s) {
+    const c = s.combat;
+    s.stats.kills++;
+    log(s, `${c.name} est vaincu !`);
+    let g = (c.kind === 'normal' ? 3 : c.kind === 'elite' ? 7 : 10) + s.depth + ri(s, 3);
+    s.players.forEach((p) => {
+      if (hasR(p, 'bourse')) g += 2;
+      if (hasR(p, 'meche')) s.oil += 1;
+      if (hasR(p, 'calice')) heal(p, 3);
+      p.dice = []; p.bonusAtk = 0; p.bonusGrd = 0;
+    });
+    s.shards += g;
+    log(s, `Butin : +${g} Éclats, +${c.xp} Savoir.`);
+    gainXp(s, c.xp);
+    s.players.forEach((p) => {
+      if (p.hp <= 0) {
+        p.hp = Math.ceil(p.maxHp / 3);
+        s.oil = Math.max(0, s.oil - 1);
+        log(s, `${p.name} est relevé (−1 Huile).`);
+      }
+    });
+    if (c.kind === 'normal' && rnd(s) < 0.3) givePotion(s);
+    const kind = c.kind;
+    s.combat = null;
+    if (kind === 'boss' && s.depth === 4) { s.phase = 'victory'; log(s, 'La Flamme noyée se rallume. L\'abbaye respire enfin.'); return; }
+    if (kind === 'boss') {
+      s.oil += 4;
+      alive(s).forEach((p) => heal(p, Math.ceil(p.maxHp * 0.4)));
+      log(s, 'Le gardien de l\'étage tombe : +4 Huile, les Veilleurs reprennent leur souffle.');
+    }
+    if (kind !== 'normal') {
+      const items = drawRelics(s, 2);
+      if (items.length) { s.reward = { items, taken: [false, false], then: kind === 'boss' ? 'descend' : 'map' }; s.phase = 'reward'; return; }
+    }
+    afterReward(s, kind === 'boss' ? 'descend' : 'map');
+  }
+
+  function afterReward(s, then) {
+    s.reward = null;
+    if (then === 'descend') { s.depth++; enterDepth(s); return; }
+    if (then === 'fight') { startCombat(s, 'normal'); return; }
+    s.phase = 'map';
+  }
+
+  /* ---------- votes partagés ---------- */
+  function vote(s, seat, value) {
+    s.votes[seat] = value;
+    if (s.solo) s.votes = [value, value];
+    return s.votes[0] !== null && s.votes[0] === s.votes[1];
+  }
+
+  /* ---------- actions ---------- */
+  function step(s, seat, act) {
+    const p = s.players[seat];
+    if (!p || !act) return s;
+    switch (act.t) {
+      case 'name': if (s.phase === 'lobby') p.name = String(act.name || '').slice(0, 16) || p.name; break;
+      case 'class':
+        if (s.phase === 'lobby' && CLASSES[act.cls] && s.players[1 - seat].cls !== act.cls) p.cls = act.cls;
+        break;
+      case 'start':
+        if (s.phase === 'lobby' && s.players.every((q) => q.cls)) startRun(s);
+        break;
+      case 'chat': {
+        const m = String(act.text || '').slice(0, 200).trim();
+        if (m) { s.chat.push({ who: p.name, m }); if (s.chat.length > 40) s.chat.shift(); }
+        break;
+      }
+      case 'go': {
+        if (s.phase !== 'map') break;
+        const row = act.row, col = act.col;
+        if (!canReach(s, row, col)) break;
+        if (vote(s, seat, `${row}:${col}`)) enterRoom(s, row, col);
+        break;
+      }
+      case 'choose': {
+        if (s.phase !== 'event') break;
+        const e = EVENTS.find((q) => q.id === s.event.id), o = e.options[act.i];
+        if (!o || !meets(s, o)) break;
+        if (!vote(s, seat, `opt${act.i}`)) break;
+        clearVotes(s);
+        s.event = null; s.phase = 'map';
+        let fx = o.fx;
+        if (o.chance) fx = rnd(s) < o.chance.p ? o.chance.win : o.chance.lose;
+        applyFx(s, fx);
+        break;
+      }
+      case 'buy': {
+        if (s.phase !== 'shop') break;
+        const it = s.shop.items[act.i];
+        if (!it || it.sold || s.shards < it.price) break;
+        if (it.kind === 'potion' && p.potions.length >= 3) break;
+        s.shards -= it.price;
+        if (it.kind === 'oil') { s.oil += 3; it.sold = true; }
+        if (it.kind === 'heal') { alive(s).forEach((q) => heal(q, 8)); it.sold = true; }
+        if (it.kind === 'potion') { p.potions.push(it.id); it.sold = true; }
+        if (it.kind === 'relic') { giveRelic(s, p, it.id); it.sold = true; }
+        log(s, `${p.name} achète : ${it.label}.`);
+        break;
+      }
+      case 'leave':
+        if (s.phase === 'shop' && vote(s, seat, 'leave')) { clearVotes(s); s.shop = null; s.phase = 'map'; }
+        break;
+      case 'rest': {
+        if (s.phase !== 'rest' || s.rest.done[seat]) break;
+        if (act.how === 'heal') { heal(p, Math.ceil(p.maxHp * 0.45)); log(s, `${p.name} dort un peu.`); }
+        if (act.how === 'study') { gainXp(s, 4); log(s, `${p.name} déchiffre les murs (+4 Savoir).`); }
+        if (act.how === 'trim') { s.oil += 2; log(s, `${p.name} entretient la lanterne (+2 Huile).`); }
+        s.rest.done[seat] = true;
+        if (s.rest.done.every(Boolean)) { s.rest = null; s.phase = 'map'; }
+        break;
+      }
+      case 'take': {
+        if (s.phase !== 'reward' || s.reward.taken[seat]) break;
+        const id = s.reward.items[act.i];
+        if (!id) break;
+        giveRelic(s, p, id);
+        s.reward.items.splice(act.i, 1);
+        s.reward.taken[seat] = true;
+        if (s.reward.taken.every(Boolean) || !s.reward.items.length) afterReward(s, s.reward.then);
+        break;
+      }
+      case 'assign': {
+        if (s.phase !== 'combat' || s.combat.ready[seat]) break;
+        const d = p.dice.find((q) => q.id === act.id);
+        if (!d) break;
+        const slot = act.slot;
+        if (slot === 'skl') {
+          if (d.v < skillMin(p)) break;
+          p.dice.forEach((q) => { if (q.slot === 'skl') q.slot = null; });
+        }
+        d.slot = ['atk', 'grd', 'skl'].includes(slot) ? slot : null;
+        break;
+      }
+      case 'reroll': {
+        if (s.phase !== 'combat' || s.combat.ready[seat] || p.rerolls <= 0) break;
+        const free = p.dice.filter((d) => !d.slot && !d.gift);
+        if (!free.length) break;
+        free.forEach((d) => { d.v = 1 + ri(s, 6); });
+        p.rerolls--;
+        s.combat.rollTick = (s.combat.rollTick || 0) + 1;
+        break;
+      }
+      case 'give': {
+        if (s.phase !== 'combat' || s.combat.ready[seat]) break;
+        const ally = s.players[1 - seat], limit = hasR(p, 'lien') ? 2 : 1;
+        if (ally.hp <= 0 || p.gives >= limit) break;
+        const i = p.dice.findIndex((q) => q.id === act.id && !q.gift);
+        if (i < 0) break;
+        const [d] = p.dice.splice(i, 1);
+        d.slot = null; d.gift = true;
+        ally.dice.push(d);
+        p.gives++;
+        s.combat.ready[1 - seat] = false;
+        log(s, `${p.name} passe un ${d.v} à ${ally.name}.`);
+        break;
+      }
+      case 'ready': {
+        if (s.phase !== 'combat' || p.hp <= 0) break;
+        s.combat.ready[seat] = !s.combat.ready[seat];
+        if (s.combat.ready.every(Boolean)) resolveRound(s);
+        break;
+      }
+      case 'potion': {
+        const k = p.potions[act.i];
+        if (!k || p.hp <= 0) break;
+        const inCombat = s.phase === 'combat';
+        if (!inCombat && !POTIONS[k].any) break;
+        if (inCombat && s.combat.ready[seat]) break;
+        p.potions.splice(act.i, 1);
+        log(s, `${p.name} utilise : ${POTIONS[k].name}.`);
+        if (k === 'soin') {
+          const t = s.players[act.target === undefined ? seat : act.target];
+          heal(t && t.hp > 0 ? t : p, 9);
+        }
+        if (k === 'force') p.bonusAtk = (p.bonusAtk || 0) + 5;
+        if (k === 'egide') p.bonusGrd = (p.bonusGrd || 0) + 7;
+        if (k === 'relance') p.dice.forEach((d) => { if (!d.slot && !d.gift) d.v = 1 + ri(s, 6); });
+        if (k === 'braise') {
+          s.combat.hp = Math.max(0, s.combat.hp - 7);
+          if (s.combat.hp <= 0) winCombat(s);
+        }
+        break;
+      }
+      case 'restart':
+        if (s.phase === 'victory' || s.phase === 'defeat') {
+          s.phase = 'lobby'; s.combat = null; s.map = null; s.pos = null;
+          s.players.forEach((q) => { q.cls = null; });
+          clearVotes(s);
+        }
+        break;
+      default:
+    }
+    return s;
+  }
+
+  function meets(s, o) {
+    if (!o.need) return true;
+    if (o.need.shards && s.shards < o.need.shards) return false;
+    if (o.need.oil && s.oil < o.need.oil) return false;
+    return true;
+  }
+
+  root.Engine = { TUNE, CLASSES, DEPTHS, ENEMIES, POTIONS, RELICS, EVENTS, XP_LEVELS, newGame, step, canReach, meets, skillMin, diceForLevel };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* La Dernière Lanterne — interface et réseau pair à pair.
+   L'hôte possède l'état ; l'invité envoie ses actions et reçoit l'état complet. */
+(function () {
+  'use strict';
+  const E = window.Engine;
+  const PREFIX = 'derniere-lanterne-v1-';
+  const SAVE = 'lanterne-save';
+  const app = document.getElementById('app');
+
+  const net = { role: null, peer: null, conn: null, code: null, status: '' };
+  let state = null, seat = 0, selected = null, lastRoll = '', lastEnemyHp = null;
+
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* stockage indisponible */ } },
+  };
+
+  /* ---------- illustrations maison ---------- */
+  const S = (inner) => `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ART = {
+    shield: S('<path d="M32 6 54 14v18c0 13-10 22-22 27C20 54 10 45 10 32V14z"/><path d="M32 6v53M10 28h44"/>'),
+    blade: S('<path d="M50 6 56 12 24 44l-6-6z"/><path d="M12 36 28 52M18 46 8 56"/>'),
+    voice: S('<path d="M20 50V16l28-7v34"/><circle cx="13" cy="50" r="7"/><circle cx="41" cy="43" r="7"/><path d="M20 26l28-7"/>'),
+    hook: S('<path d="M40 6v28a12 12 0 1 1-24 0"/><path d="M16 34l-6 7M16 34l7 6"/><circle cx="40" cy="6" r="2"/>'),
+    eel: S('<path d="M8 44c8-16 14 8 22-8s12 6 20-10c2-4 6-6 8-4 1 4-2 8-6 8"/><circle cx="53" cy="24" r="1.5"/><path d="M8 44c-2 3-3 6-2 9"/>'),
+    wraith: S('<path d="M14 58V28a18 18 0 0 1 36 0v30l-6-6-6 6-6-6-6 6-6-6z"/><circle cx="25" cy="27" r="3"/><circle cx="39" cy="27" r="3"/><path d="M27 39h10"/>'),
+    crab: S('<ellipse cx="32" cy="38" rx="17" ry="12"/><path d="M15 34C6 30 6 18 14 14l3 7 5-3c1 8-2 13-7 16zM49 34c9-4 9-16 1-20l-3 7-5-3c-1 8 2 13 7 16z"/><path d="M18 47l-7 8M26 50l-3 8M46 47l7 8M38 50l3 8"/><circle cx="26" cy="35" r="2"/><circle cx="38" cy="35" r="2"/>'),
+    statue: S('<path d="M12 58h40M18 58l4-22h20l4 22"/><path d="M22 36C12 34 8 24 6 12c8 3 12 6 16 12M42 36c10-2 14-12 16-24-8 3-12 6-16 12"/><circle cx="32" cy="24" r="10"/><path d="M27 23h2M35 23h2M28 29c3 2 5 2 8 0"/>'),
+    bell: S('<path d="M32 6c-12 0-16 10-16 20 0 12-6 16-8 22h48c-2-6-8-10-8-22 0-10-4-20-16-20z"/><path d="M32 6V2"/><circle cx="32" cy="55" r="5"/>'),
+    rat: S('<path d="M8 42c0-14 12-22 26-20 8 1 14 7 20 16-4 4-10 6-16 6H14"/><circle cx="46" cy="33" r="2"/><path d="M34 22c-2-8 8-10 9-3M14 44c-8 2-10 8-6 14"/>'),
+    skull: S('<path d="M12 28C12 14 21 7 32 7s20 7 20 21c0 8-4 12-8 15v9H20v-9c-4-3-8-7-8-15z"/><circle cx="23" cy="29" r="5"/><circle cx="41" cy="29" r="5"/><path d="M32 36l-2 5h4zM27 52v-6M32 52v-6M37 52v-6"/>'),
+    worm: S('<path d="M12 58c0-14 8-16 10-24S14 20 24 10c12-8 28 2 24 14-3 9-14 8-14 18 0 6 6 10 12 16"/><circle cx="30" cy="15" r="2"/><circle cx="40" cy="17" r="2"/><path d="M28 24c4 3 8 3 12 0"/>'),
+    eye: S('<path d="M4 32c8-14 18-20 28-20s20 6 28 20c-8 14-18 20-28 20S12 46 4 32z"/><circle cx="32" cy="32" r="11"/><circle cx="32" cy="32" r="4" fill="currentColor"/>'),
+    abbess: S('<path d="M10 60c0-22 4-38 22-52 18 14 22 30 22 52"/><path d="M22 34c0-7 4-11 10-11s10 4 10 11-4 11-10 11-10-4-10-11z"/><path d="M26 34h3M35 34h3M32 45v15M24 52h16"/>'),
+    lantern: S('<path d="M24 16h16l4 6v26l-4 6H24l-4-6V22zM24 16c0-6 16-6 16 0M28 8h8"/><path d="M32 44c-5 0-7-4-5-8 1-3 4-4 5-9 2 4 7 6 6 11-1 4-3 6-6 6z"/>'),
+    shard: S('<path d="M32 5 50 24 32 59 14 24z"/><path d="M14 24h36M32 5l-8 19 8 35 8-35z"/>'),
+    book: S('<path d="M8 12c10-3 18-1 24 5 6-6 14-8 24-5v40c-10-3-18-1-24 5-6-6-14-8-24-5zM32 17v40"/>'),
+    combat: S('<path d="M12 8 44 40M52 8 20 40M34 42l8-8M30 42l-8-8M44 40l10 12M20 40 10 52"/>'),
+    elite: S('<path d="M8 50 4 16l16 12L32 8l12 20 16-12-4 34z"/><path d="M8 58h48"/>'),
+    event: S('<path d="M22 22c0-14 22-14 22 0 0 10-12 10-12 22"/><circle cx="32" cy="55" r="2"/>'),
+    mystery: S('<circle cx="32" cy="32" r="24" stroke-dasharray="6 7"/><path d="M26 26c0-9 14-9 14 0 0 6-8 6-8 13"/><circle cx="32" cy="46" r="1.5"/>'),
+    treasure: S('<path d="M8 28h48v26H8zM8 28c0-10 6-16 12-16h24c6 0 12 6 12 16M28 28v10h8V28"/>'),
+    shop: S('<path d="M10 24 16 8h32l6 16M10 24v32h44V24M10 24c0 8 14 8 14 0 0 8 16 8 16 0 0 8 14 8 14 0"/><path d="M26 56V38h12v18"/>'),
+    rest: S('<path d="M32 6v52M16 22h32"/>'),
+    boss: S('<path d="M12 28C12 14 21 7 32 7s20 7 20 21c0 8-4 12-8 15v9H20v-9c-4-3-8-7-8-15z"/><path d="M18 24l10 6M46 24l-10 6"/><path d="M27 52v-6M32 52v-6M37 52v-6"/>'),
+  };
+  const NODE = { combat: 'Combat', elite: 'Élite', event: 'Rencontre', mystery: 'Inconnu', treasure: 'Coffre', shop: 'Boutique', rest: 'Chapelle' };
+
+  /* ---------- réseau ---------- */
+  function act(a) {
+    if (net.role === 'guest') { if (net.conn && net.conn.open) net.conn.send({ k: 'act', a }); return; }
+    apply(seat, a);
+  }
+  function apply(who, a) {
+    E.step(state, who, a);
+    publish();
+  }
+  function publish() {
+    if (net.role !== 'solo') store.set(SAVE, JSON.stringify({ code: net.code, state }));
+    if (net.conn && net.conn.open) net.conn.send({ k: 'state', state });
+    render();
+  }
+
+  function makeCode() {
+    const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    let c = '';
+    const r = new Uint32Array(5);
+    crypto.getRandomValues(r);
+    r.forEach((n) => { c += A[n % A.length]; });
+    return c;
+  }
+
+  function host(code, saved) {
+    net.role = 'host'; seat = 0; net.code = code; net.status = 'Ouverture du salon…';
+    state = saved || E.newGame(Date.now() % 2147483647, false);
+    state.players[0].connected = true; state.players[1].connected = false;
+    render();
+    if (!window.Peer) { net.status = 'Le service de connexion n\'a pas pu être chargé.'; render(); return; }
+    const peer = new window.Peer(PREFIX + code);
+    net.peer = peer;
+    peer.on('open', () => { net.status = 'Salon ouvert.'; render(); });
+    peer.on('connection', (c) => {
+      c.on('open', () => {
+        if (net.conn && net.conn.open) net.conn.close();
+        net.conn = c;
+        state.players[1].connected = true;
+        publish();
+      });
+      c.on('data', (m) => { if (m && m.k === 'act' && c === net.conn) apply(1, m.a); });
+      c.on('close', () => { if (c === net.conn) { state.players[1].connected = false; publish(); } });
+    });
+    peer.on('disconnected', () => { if (!peer.destroyed) peer.reconnect(); });
+    peer.on('error', (e) => {
+      if (e.type === 'unavailable-id') { net.status = 'Salon encore réservé, nouvel essai…'; render(); peer.destroy(); setTimeout(() => host(code, state), 4000); return; }
+      net.status = 'Erreur réseau : ' + e.type; render();
+    });
+  }
+
+  function join(code) {
+    net.role = 'guest'; seat = 1; net.code = code; state = null; net.status = 'Connexion au salon ' + code + '…';
+    render();
+    if (!window.Peer) { net.status = 'Le service de connexion n\'a pas pu être chargé.'; render(); return; }
+    const peer = new window.Peer();
+    net.peer = peer;
+    peer.on('open', () => {
+      const c = peer.connect(PREFIX + code, { reliable: true });
+      net.conn = c;
+      c.on('data', (m) => { if (m && m.k === 'state') { state = m.state; net.status = ''; render(); } });
+      c.on('close', () => { net.status = 'Connexion perdue. Recharge la page pour revenir.'; render(); });
+    });
+    peer.on('error', (e) => {
+      net.status = e.type === 'peer-unavailable' ? 'Salon introuvable : vérifie le code, et que l\'hôte a bien sa page ouverte.' : 'Erreur réseau : ' + e.type;
+      render();
+    });
+  }
+
+  function solo() {
+    net.role = 'solo'; seat = 0; state = E.newGame(Date.now() % 2147483647, true);
+    state.players.forEach((p) => { p.connected = true; });
+    render();
+  }
+
+  const shareLink = () => location.href.split('#')[0].split('?')[0] + '?salon=' + net.code;
+
+  /* ---------- rendu ---------- */
+  function render() {
+    if (!state) { app.innerHTML = home(); return; }
+    if (state.phase === 'lobby') { app.innerHTML = lobby(); return; }
+    const chatInput = document.getElementById('chatin');
+    const draft = chatInput ? chatInput.value : '';
+    const hadFocus = chatInput && document.activeElement === chatInput;
+    app.innerHTML = table();
+    const ci = document.getElementById('chatin');
+    if (ci) { ci.value = draft; if (hadFocus) ci.focus(); }
+    ['log', 'chat'].forEach((id) => { const el = document.getElementById(id); if (el) el.scrollTop = el.scrollHeight; });
+  }
+
+  const rulesHtml = `
+    <details class="rules box"><summary>Règles en deux minutes</summary>
+      <ul>
+        <li><b>But :</b> traverser les 4 profondeurs de l'abbaye et vaincre l'Abbesse sans lumière.</li>
+        <li><b>Déplacement :</b> à chaque salle, vous devez cliquer tous les deux sur la même destination. Une salle coûte 1 Huile. Sans huile, chaque déplacement coûte 3 Vigueur.</li>
+        <li><b>Combat :</b> l'intention de l'ennemi est visible. Placez vos dés en Attaque, en Garde ou sur votre Compétence. Une relance par tour pour les dés encore libres.</li>
+        <li><b>Entraide :</b> chaque tour, vous pouvez passer un dé à votre allié. Il apparaît en vert chez lui.</li>
+        <li><b>À terre :</b> un Veilleur à 0 Vigueur est relevé après le combat (−1 Huile). Si les deux tombent, c'est perdu.</li>
+        <li><b>Ressources :</b> Huile et Éclats sont communs. Le Savoir fait monter le niveau des deux Veilleurs, et les niveaux 3 et 5 donnent un dé de plus.</li>
+      </ul>
+    </details>`;
+
+  function home() {
+    const saved = store.get(SAVE);
+    let resume = '';
+    if (saved) {
+      try {
+        const v = JSON.parse(saved);
+        if (v.state && v.state.phase !== 'lobby') resume = `<div class="box" style="margin-top:14px"><h3>Partie en cours</h3><p class="small dim">Salon ${esc(v.code)}, profondeur ${v.state.depth}.</p><button data-do="resume">Reprendre comme hôte</button></div>`;
+      } catch (e) { /* sauvegarde illisible */ }
+    }
+    return `<div class="home">
+      <h1>La Dernière Lanterne</h1>
+      <p class="lead">Deux Veilleurs, une seule lanterne, et une abbaye engloutie à traverser avant que l'huile ne manque.</p>
+      <div class="home-grid">
+        <div class="box"><h3>Créer un salon</h3><p class="small dim">Tu obtiens un lien à envoyer à ton coéquipier.</p><button class="primary" data-do="host">Créer</button></div>
+        <div class="box"><h3>Rejoindre</h3><input id="code" maxlength="5" placeholder="Code du salon" aria-label="Code du salon" autocomplete="off"><button data-do="join">Rejoindre</button></div>
+        <div class="box"><h3>S'entraîner</h3><p class="small dim">Tu contrôles les deux Veilleurs sur ce PC.</p><button data-do="solo">Jouer seul</button></div>
+      </div>
+      ${resume}
+      <p class="err">${esc(net.status)}</p>
+      ${rulesHtml}
+    </div>`;
+  }
+
+  function lobby() {
+    const me = state.players[seat], other = state.players[1 - seat];
+    const cards = Object.entries(E.CLASSES).map(([id, c]) => {
+      const owner = state.players.findIndex((p) => p.cls === id);
+      const taken = owner >= 0 && owner !== seat;
+      return `<div class="card ${owner === seat ? 'pick' : ''}">${ART[c.glyph]}<h3>${c.name}</h3>
+        <span class="small dim">${c.hp} Vigueur. ${c.desc}</span>
+        <span class="small grow"><b>${c.skill} (dé ≥ ${c.min}) :</b> ${c.skillDesc}</span>
+        <button data-do="class" data-v="${id}" ${taken ? 'disabled' : ''}>${taken ? esc(state.players[owner].name) : owner === seat ? 'Choisi' : 'Choisir'}</button></div>`;
+    }).join('');
+    const canStart = state.players.every((p) => p.cls) && (state.solo || other.connected);
+    const invite = net.role === 'host' ? `<div class="box" style="margin-bottom:14px"><h3>Invite ton coéquipier</h3>
+      <p class="small">Code : <span class="code">${esc(net.code)}</span>. ${other.connected ? 'Ton coéquipier est connecté.' : 'En attente de ton coéquipier…'}</p>
+      ${location.protocol === 'file:' ? '<p class="small dim">Envoie-lui ce fichier et ce code : il ouvre le fichier, puis clique sur Rejoindre.</p>' : `<input readonly value="${esc(shareLink())}" aria-label="Lien du salon"><button data-do="copy">Copier le lien</button>`}
+      <p class="small dim">${esc(net.status)}</p></div>` : '';
+    const seatSw = state.solo ? seatSwitch() : '';
+    return `<div class="home" style="max-width:980px">
+      <h1 style="font-size:44px">Choisissez vos Veilleurs</h1>
+      <p class="lead" style="margin-bottom:16px">${state.players.map((p) => esc(p.name) + ' : ' + (p.cls ? E.CLASSES[p.cls].name : '…')).join(' · ')}</p>
+      ${invite}${seatSw}
+      <div style="max-width:300px;margin:12px auto 0"><input id="name" maxlength="16" value="${esc(me.name)}" aria-label="Ton nom" data-name="1"></div>
+      <div class="cards">${cards}</div>
+      <p style="margin-top:18px">${net.role === 'guest' && !canStart ? '<span class="dim">Choisis un Veilleur.</span>' : ''}
+      <button class="primary" data-do="start" ${canStart ? '' : 'disabled'}>Allumer la lanterne</button></p>
+      ${rulesHtml}</div>`;
+  }
+
+  const seatSwitch = () => `<div class="seat-switch" style="justify-content:center;margin-top:8px">${state.players.map((p, i) => `<button data-do="seat" data-v="${i}" class="${i === seat ? 'voted' : ''}">Jouer ${esc(p.name)}</button>`).join('')}</div>`;
+
+  function heroPanel(p, i) {
+    const c = E.CLASSES[p.cls];
+    const pots = p.potions.map((k, n) => {
+      const po = E.POTIONS[k];
+      const canUse = i === seat && p.hp > 0 && (state.phase === 'combat' || po.any);
+      return canUse ? `<button class="tag" data-do="potion" data-v="${n}" title="${esc(po.desc)}">${po.name}</button>` : `<span class="tag" title="${esc(po.desc)}">${po.name}</span>`;
+    }).join('');
+    const rel = p.relics.map((r) => `<span class="tag" title="${esc(E.RELICS[r].desc)}">${E.RELICS[r].name}</span>`).join('');
+    return `<div class="hero ${i === seat ? 'me' : ''} ${p.hp <= 0 ? 'down' : ''}">
+      <div class="hero-head">${ART[c.glyph]}<div><div class="hero-name">${esc(p.name)}</div><div class="small dim">${c.name}${!state.solo && !p.connected ? ' · déconnecté' : ''}</div></div></div>
+      <div class="bar"><i style="width:${Math.max(0, 100 * p.hp / p.maxHp)}%"></i></div>
+      <div class="small">${p.hp} / ${p.maxHp} Vigueur${p.cursed ? ' · maudit' : ''}</div>
+      <div class="small dim" style="margin-top:6px"><b>${c.skill} (dé ≥ ${E.skillMin(p)}) :</b> ${c.skillDesc}</div>
+      ${pots || rel ? `<div class="tags">${pots}${rel}</div>` : ''}
+    </div>`;
+  }
+
+  function table() {
+    const nextXp = E.XP_LEVELS[state.level];
+    const warn = state.oil <= 2 ? 'warn' : '';
+    return `<div class="game">
+      <div class="topbar">
+        <span class="brand">La Dernière Lanterne</span>
+        <span>Profondeur ${state.depth} / 4 : ${E.DEPTHS[state.depth - 1].name}</span>
+        <span class="res ${warn}" title="Huile commune">${ART.lantern}${state.oil} Huile</span>
+        <span class="res" title="Éclats communs">${ART.shard}${state.shards} Éclats</span>
+        <span class="res" title="Savoir commun">${ART.book}Niv. ${state.level}${nextXp ? ` (${state.xp}/${nextXp})` : ''}</span>
+        <span class="spacer"></span>
+        ${net.code ? `<span class="small dim">Salon <span class="code">${esc(net.code)}</span></span>` : ''}
+        ${state.solo ? seatSwitch() : ''}
+      </div>
+      <div class="heroes">${state.players.map(heroPanel).join('')}</div>
+      <main class="stage">${stage()}</main>
+      <div class="side">
+        <div class="feed" id="log"><h3>Chronique</h3>${state.log.map((m) => `<p>${esc(m)}</p>`).join('')}</div>
+        ${state.solo ? '' : `<div class="feed" id="chatwrap"><h3>Discussion</h3><div id="chat">${state.chat.map((c) => `<p><b>${esc(c.who)} :</b> ${esc(c.m)}</p>`).join('')}</div><input id="chatin" maxlength="200" placeholder="Écrire, puis Entrée" aria-label="Message"></div>`}
+      </div>
+    </div>`;
+  }
+
+  function stage() {
+    switch (state.phase) {
+      case 'map': return mapView();
+      case 'combat': return combatView();
+      case 'event': return eventView();
+      case 'shop': return shopView();
+      case 'rest': return restView();
+      case 'reward': return rewardView();
+      case 'victory': return `<div class="banner">${ART.lantern}<h2>La Flamme est rallumée</h2><p>${state.stats.kills} ennemis vaincus en ${state.moves} salles. L'abbaye peut enfin dormir.</p><button class="primary" data-do="restart">Nouvelle descente</button></div>`;
+      case 'defeat': return `<div class="banner"><h2 style="color:var(--blood)">La lanterne s'est éteinte</h2><p>Vous êtes tombés à la profondeur ${state.depth}, après ${state.stats.kills} ennemis vaincus.</p><button class="primary" data-do="restart">Redescendre</button></div>`;
+      default: return '';
+    }
+  }
+
+  function whoVoted(val) {
+    if (state.solo) return '';
+    return state.votes.map((v, i) => (v === val ? esc(state.players[i].name) : null)).filter(Boolean).join(', ');
+  }
+  function voteNote() {
+    if (state.solo) return '';
+    const mine = state.votes[seat], theirs = state.votes[1 - seat];
+    if (mine === null && theirs !== null) return `${esc(state.players[1 - seat].name)} propose un choix : clique dessus pour accepter.`;
+    if (mine !== null && theirs === null) return `En attente de ${esc(state.players[1 - seat].name)}…`;
+    if (mine !== null && mine !== theirs) return 'Vous n\'êtes pas d\'accord : parlez-en !';
+    return '';
+  }
+
+  function mapView() {
+    const rows = state.map.map((row) => `<div class="map-row">${row.map((n) => {
+      const reach = E.canReach(state, n.row, n.col);
+      const here = state.pos && state.pos.row === n.row && state.pos.col === n.col;
+      const val = `${n.row}:${n.col}`;
+      return `<button class="node ${reach ? 'reach' : ''} ${here ? 'here' : ''} ${n.row < (state.pos ? state.pos.row : 0) || (n.done && !here) ? 'past' : ''} ${state.votes[seat] === val ? 'voted' : ''}" data-do="go" data-r="${n.row}" data-c="${n.col}" ${reach ? '' : 'disabled'}>${ART[n.type]}<span>${NODE[n.type]}</span><span class="who">${whoVoted(val)}</span></button>`;
+    }).join('')}</div>`).join('');
+    const bossReach = E.canReach(state, 4, 0);
+    const boss = `<div class="map-row"><button class="node boss ${bossReach ? 'reach' : ''} ${state.votes[seat] === '4:0' ? 'voted' : ''}" data-do="go" data-r="4" data-c="0" ${bossReach ? '' : 'disabled'}>${ART.boss}<span>${esc(E.ENEMIES[state.depth].boss.name)}</span><span class="who">${whoVoted('4:0')}</span></button></div>`;
+    return `<h2>${E.DEPTHS[state.depth - 1].name}</h2>
+      <p class="dim">Choisissez la prochaine salle, de bas en haut. Chaque salle coûte 1 Huile.</p>
+      <div class="map">${rows}${boss}</div><p class="vote-note">${voteNote()}</p>`;
+  }
+
+  function intentText(c) {
+    const it = c.intent, t = state.players[c.target].name;
+    return { a: `Va frapper ${esc(t)} pour ${it.v}`, x: `Va frapper les deux Veilleurs pour ${it.v}`, s: `Se protège de ${it.v} dégâts ce tour`,
+      d: `Va souffler ${it.v} Huile`, h: `Va récupérer ${it.v} Vigueur`, c: `Va maudire ${esc(t)} : un dé de moins` }[it.t];
+  }
+
+  function dieBtn(d, spin) {
+    return `<button class="die ${d.gift ? 'gift' : ''} ${selected === d.id ? 'sel' : ''} ${spin ? 'roll' : ''}" data-do="die" data-v="${esc(d.id)}" aria-label="Dé de valeur ${d.v}">${d.v}</button>`;
+  }
+
+  function combatView() {
+    const c = state.combat, p = state.players[seat], ally = state.players[1 - seat];
+    const rollKey = `${c.round}-${c.rollTick || 0}`, spin = rollKey !== lastRoll;
+    lastRoll = rollKey;
+    const hit = lastEnemyHp !== null && c.hp < lastEnemyHp;
+    lastEnemyHp = c.hp;
+    const ready = c.ready[seat], down = p.hp <= 0;
+    const inSlot = (s) => p.dice.filter((d) => d.slot === s);
+    const slot = (key, label) => {
+      const ds = inSlot(key), sum = ds.reduce((n, d) => n + d.v, 0);
+      return `<div class="slot"><h3>${label}<span class="sum">${sum || ''}</span></h3><div class="dice">${ds.map((d) => dieBtn(d, spin)).join('')}</div>
+        <button data-do="place" data-v="${key}" ${selected ? '' : 'disabled'} style="width:100%;margin-top:6px">Placer ici</button></div>`;
+    };
+    const free = p.dice.filter((d) => !d.slot);
+    const sel = p.dice.find((d) => d.id === selected);
+    const canGive = sel && !sel.gift && ally.hp > 0 && (p.gives || 0) < (p.relics.includes('lien') ? 2 : 1);
+    const allyDice = ally.dice.map((d) => `<span class="mini ${d.slot || ''}" title="${d.slot === 'atk' ? 'Attaque' : d.slot === 'grd' ? 'Garde' : d.slot === 'skl' ? 'Compétence' : 'Libre'}">${d.v}</span>`).join('');
+    return `<div class="enemy ${hit ? 'hit' : ''}">${ART[c.glyph]}<div style="flex:1;min-width:0">
+        <h2 style="font-size:26px">${esc(c.name)}</h2>
+        <div class="bar"><i style="width:${100 * c.hp / c.maxHp}%"></i></div>
+        <div class="small">${c.hp} / ${c.maxHp} Vigueur · Armure ${c.armor}</div>
+        <div class="intent">${intentText(c)}</div></div></div>
+      ${down ? '<p class="dim" style="margin-top:14px">Tu es à terre. Ton allié peut encore gagner ce combat.</p>' : `
+      <h3 style="margin-top:14px">Tes dés</h3>
+      <div class="dice">${free.map((d) => dieBtn(d, spin)).join('') || '<span class="dim small">Tous tes dés sont placés.</span>'}</div>
+      <div class="slots">${slot('atk', 'Attaque')}${slot('grd', 'Garde')}${slot('skl', `${E.CLASSES[p.cls].skill} (≥ ${E.skillMin(p)})`)}</div>
+      <div class="controls">
+        <button data-do="reroll" ${p.rerolls > 0 && free.some((d) => !d.gift) && !ready ? '' : 'disabled'}>Relancer les dés libres (${p.rerolls})</button>
+        <button data-do="free" ${sel && sel.slot ? '' : 'disabled'}>Retirer le dé</button>
+        ${state.solo ? '' : ''}
+        <button data-do="give" ${canGive ? '' : 'disabled'}>Passer à ${esc(ally.name)}</button>
+        <span class="spacer"></span>
+        <button class="primary ${ready ? 'voted' : ''}" data-do="ready">${ready ? 'Annuler' : 'Prêt'}</button>
+      </div>`}
+      <div class="ally small"><b>${esc(ally.name)}</b> ${c.ready[1 - seat] ? '(prêt)' : ''} : ${allyDice || '<span class="dim">aucun dé</span>'}</div>
+      ${c.last.length ? `<div class="lastround">${c.last.map(esc).join(' ')}</div>` : ''}`;
+  }
+
+  function eventView() {
+    const e = E.EVENTS.find((q) => q.id === state.event.id);
+    return `<h2>${e.title}</h2><p>${e.text}</p>
+      <div class="options">${e.options.map((o, i) => {
+        const w = whoVoted(`opt${i}`);
+        return `<button class="${state.votes[seat] === `opt${i}` ? 'voted' : ''}" data-do="choose" data-v="${i}" ${E.meets(state, o) ? '' : 'disabled'}>${o.label}${o.chance ? ' <span class="dim small">(risqué)</span>' : ''}${w ? ` <span class="small" style="color:var(--teal)">· ${w}</span>` : ''}</button>`;
+      }).join('')}</div><p class="vote-note" style="text-align:left">${voteNote()}</p>`;
+  }
+
+  function shopView() {
+    const items = state.shop.items.map((it, i) => `<div class="card"><h3>${esc(it.label)}</h3><span class="small dim grow">${esc(it.desc)}</span>
+      <button data-do="buy" data-v="${i}" ${it.sold || state.shards < it.price ? 'disabled' : ''}>${it.sold ? 'Vendu' : it.price + ' Éclats'}</button></div>`).join('');
+    return `<h2>La boutique du frère convers</h2><p class="dim">Les Éclats sont communs. Ce que tu achètes va dans ton sac.</p>
+      <div class="cards">${items}</div>
+      <p style="margin-top:14px"><button class="${state.votes[seat] === 'leave' ? 'voted' : ''}" data-do="leave">Repartir</button></p><p class="vote-note">${voteNote()}</p>`;
+  }
+
+  function restView() {
+    const done = state.rest.done[seat];
+    return `<h2>Une chapelle sèche</h2><p>Une seule chose à faire avant de repartir. Chaque Veilleur choisit la sienne.</p>
+      ${done ? `<p class="vote-note">En attente de ${esc(state.players[1 - seat].name)}…</p>` : `<div class="options">
+        <button data-do="rest" data-v="heal">Dormir (+45 % de ta Vigueur)</button>
+        <button data-do="rest" data-v="study">Déchiffrer les murs (+4 Savoir)</button>
+        <button data-do="rest" data-v="trim">Entretenir la lanterne (+2 Huile)</button></div>`}`;
+  }
+
+  function rewardView() {
+    const r = state.reward;
+    const done = r.taken[seat];
+    return `<h2>Une relique pour chacun</h2><p class="dim">Chaque Veilleur en prend une.</p>
+      ${done ? `<p class="vote-note">En attente de ${esc(state.players[1 - seat].name)}…</p>` : ''}
+      <div class="cards">${r.items.map((id, i) => `<div class="card"><h3>${E.RELICS[id].name}</h3><span class="small dim grow">${E.RELICS[id].desc}</span>
+      <button data-do="take" data-v="${i}" ${done ? 'disabled' : ''}>Prendre</button></div>`).join('')}</div>`;
+  }
+
+  /* ---------- interactions ---------- */
+  app.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-do]');
+    if (!b || b.disabled) return;
+    const v = b.dataset.v, what = b.dataset.do;
+    switch (what) {
+      case 'host': host(makeCode()); break;
+      case 'join': {
+        const code = (document.getElementById('code').value || '').trim().toUpperCase();
+        if (code.length === 5) join(code);
+        else { net.status = 'Le code fait 5 caractères.'; render(); }
+        break;
+      }
+      case 'solo': solo(); break;
+      case 'resume': { const sv = JSON.parse(store.get(SAVE)); host(sv.code, sv.state); break; }
+      case 'copy': navigator.clipboard && navigator.clipboard.writeText(shareLink()).then(() => { b.textContent = 'Lien copié'; }, () => {}); break;
+      case 'seat': seat = Number(v); selected = null; render(); break;
+      case 'class': act({ t: 'class', cls: v }); break;
+      case 'start': act({ t: 'start' }); break;
+      case 'go': act({ t: 'go', row: Number(b.dataset.r), col: Number(b.dataset.c) }); break;
+      case 'die': selected = selected === v ? null : v; render(); break;
+      case 'place': if (selected) { act({ t: 'assign', id: selected, slot: v }); selected = null; render(); } break;
+      case 'free': if (selected) { act({ t: 'assign', id: selected, slot: null }); selected = null; render(); } break;
+      case 'give': if (selected) { act({ t: 'give', id: selected }); selected = null; render(); } break;
+      case 'reroll': selected = null; act({ t: 'reroll' }); break;
+      case 'ready':
+        selected = null; act({ t: 'ready' });
+        if (state && state.solo && state.phase === 'combat' && !state.combat.ready[1 - seat]) { seat = 1 - seat; render(); }
+        break;
+      case 'potion': {
+        const p = state.players[seat];
+        const hurt = state.players.map((q, i) => ({ q, i })).filter((o) => o.q.hp > 0).sort((m, n) => m.q.hp / m.q.maxHp - n.q.hp / n.q.maxHp)[0];
+        act({ t: 'potion', i: Number(v), target: p.potions[Number(v)] === 'soin' && hurt ? hurt.i : undefined });
+        break;
+      }
+      case 'choose': act({ t: 'choose', i: Number(v) }); break;
+      case 'buy': act({ t: 'buy', i: Number(v) }); break;
+      case 'leave': act({ t: 'leave' }); break;
+      case 'rest':
+        act({ t: 'rest', how: v });
+        if (state && state.solo && state.phase === 'rest') { seat = 1 - seat; render(); }
+        break;
+      case 'take':
+        act({ t: 'take', i: Number(v) });
+        if (state && state.solo && state.phase === 'reward') { seat = 1 - seat; render(); }
+        break;
+      case 'restart': act({ t: 'restart' }); break;
+      default:
+    }
+  });
+
+  app.addEventListener('change', (ev) => {
+    if (ev.target.dataset && ev.target.dataset.name) act({ t: 'name', name: ev.target.value });
+  });
+  app.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.id === 'chatin' && ev.target.value.trim()) {
+      act({ t: 'chat', text: ev.target.value });
+      ev.target.value = '';
+    }
+  });
+
+  /* lien d'invitation */
+  const invited = new URLSearchParams(location.search).get('salon');
+  if (invited) join(invited.toUpperCase().slice(0, 5));
+  else render();
+})();
+
+</script>
+</body>
+</html>
